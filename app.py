@@ -108,7 +108,7 @@ def callback():
     no_event = len(decoded['events'])
     for i in range(no_event):
             event = decoded['events'][i]
-            event_handle(event)
+            event_handle(event,json_line)
 
     # เชื่อมต่อกับ dialogflow
     #intent = decoded["queryResult"]["intent"]["displayName"] 
@@ -124,7 +124,7 @@ def reply(intent,text,reply_token,id,disname):
     text_message = TextSendMessage(text="ทดสอบ")
     line_bot_api.reply_message(reply_token,text_message)
 
-def event_handle(event):
+def event_handle(event,json_line):
     print(event)
     try: 
         userId = event['source']['userId']
@@ -147,10 +147,29 @@ def event_handle(event):
         line_bot_api.reply_message(rtoken, replyObj)
         return ''
 
-    if msgType == "text":
+   if msgType == "text":
         msg = str(event["message"]["text"])
-        replyObj = TextSendMessage(text=msg)
-        line_bot_api.reply_message(rtoken, replyObj)
+        if (msg == "สวัสดี") :
+            replyObj = TextSendMessage(text="สวัสดีค่า")
+            line_bot_api.reply_message(rtoken, replyObj)
+        elif (msg == "ไปทะเลกัน") :
+            replyObj = TextSendMessage(text="รอไรอ่ะ เอาดิ")
+            line_bot_api.reply_message(rtoken, replyObj)
+        elif (msg == "กินข้าวยัง") :
+            replyObj = TextSendMessage(text="กินแล้วจ้าาาาาาาาาาาาาาา")
+            line_bot_api.reply_message(rtoken, replyObj)
+        elif msg == "covid" :
+            url = "https://covid19.ddc.moph.go.th/api/Cases/today-cases-by-provinces"
+            response = requests.get(url)
+            response = response.json()
+            replyObj = TextSendMessage(text=str(response))
+            line_bot_api.reply_message(rtoken, replyObj)
+        else : 
+            headers = request.headers
+            json_headers = ({k:v for k, v in headers.items()})
+            json_headers.update({'Host':'bots.dialogflow.com'})
+            url = "https://dialogflow.cloud.google.com/v1/integrations/line/webhook/41a5ab4a-8822-4726-9549-ed1e6067d311"
+            requests.post(url,data=json_line, headers=json_headers)
     elif msgType == "image":
         try:
             message_content = line_bot_api.get_message_content(event['message']['id'])
